@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Image, Text, ScrollView, Button, Platform } from 'react-native';
 import { GestureHandlerRootView, TouchableOpacity } from 'react-native-gesture-handler';
 
-import { TicketCardProps } from 'constants/types';
+import { OngoingTicketCardProps, TicketCardProps } from 'constants/types';
 import DetailedBikeTickets from './CompletedBike';
 
 import * as ImagePicker from 'expo-image-picker';
 import * as Permissions from 'expo-permissions';
+import { router } from 'expo-router';
 const formatDateTime = (dateTime: string) => {
     const date = new Date(dateTime);
     const formattedDate = date.toLocaleDateString();
@@ -15,7 +16,7 @@ const formatDateTime = (dateTime: string) => {
 };
 
 
-const OngoingTicketCard: React.FC<TicketCardProps> = ({
+const OngoingTicketCard: React.FC<OngoingTicketCardProps> = ({
     ticketId,
     jobType,
     customerName,
@@ -37,13 +38,17 @@ const OngoingTicketCard: React.FC<TicketCardProps> = ({
     selectedTicketId,
     handleCardClick,
     handleBack,
+    handleConfirmation,
 }) => {
     const isSelected = selectedTicketId === ticketId;
     const [clicked, setClicked] = useState<boolean>(false);
 
     const [showBatteryPictures, setShowBatteryPictures] = useState<boolean>(false);
     const [showHelmetPictures, setShowHelmetPictures] = useState<boolean>(false);
-    const [showConnectorPictures, setShowConnectorPictures] = useState<boolean>(false)
+    const [showConnectorPictures, setShowConnectorPictures] = useState<boolean>(false);
+    const [showChargerPictures, setShowChargerPictures] = useState<boolean>(false);
+    const [showScratchesPictures, setShowScratchesPictures] = useState<boolean>(false);
+
     const handleBatteryButtonClicked = () => {
         setShowBatteryPictures(true);
 
@@ -57,6 +62,17 @@ const OngoingTicketCard: React.FC<TicketCardProps> = ({
         setShowConnectorPictures(true);
 
     };
+    const handleChargerButtonClicked = () => {
+        setShowChargerPictures(true);
+
+    };
+    const handleScratchesButtonClicked = () => {
+        setShowScratchesPictures(true);
+
+    };
+
+
+
     if (isSelected) {
         return (
             <GestureHandlerRootView style={{ flex: 1 }}>
@@ -152,14 +168,45 @@ const OngoingTicketCard: React.FC<TicketCardProps> = ({
                                         <ImagePickerExample direction='Connector1' />
                                         <ImagePickerExample direction='Connector2' />
                                     </View>
+                                    <TouchableOpacity onPress={handleChargerButtonClicked} style={styles.button}>
+                                        <Text style={styles.btnText}>Now Click Charger Pictures</Text>
+                                    </TouchableOpacity>
                                 </>
                             )}
+                            {showChargerPictures && (
+                                <>
+                                    <Text style={styles.picHeading}>Charger Pictures</Text>
+                                    <View style={styles.row1}>
+                                        <ImagePickerExample direction='Charger1' />
+                                    </View>
+                                    <TouchableOpacity onPress={handleScratchesButtonClicked} style={styles.button}>
+                                        <Text style={styles.btnText}>Now Click Scratches</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.button1}>
+                                        <Text style={styles.btnText1}>Now Proceed</Text>
+                                    </TouchableOpacity>
+                                </>
+                            )}
+                            {showScratchesPictures && (
+                                <>
+                                    <Text style={styles.picHeading}>Scratches Pictures</Text>
+                                    <View style={styles.row1}>
+                                        <ImagePickerExample direction='Scratch 1' />
+                                        <ImagePickerExample direction='Scratch 2' />
+                                        <ImagePickerExample direction='Scratch 3' />
+                                    </View>
+                                    <View style={styles.row1}>
+                                        <ImagePickerExample direction='Scratch 4' />
+                                        <ImagePickerExample direction='Scratch 5' />
+                                        <ImagePickerExample direction='Scratch 6' />
+                                    </View>
+                                </>
+                            )}
+
                         </View>
                     </ScrollView>
                     <View style={styles.actionIcons1}>
-                        <TouchableOpacity onPress={handleScan}>
-                            <Image style={styles.Icons} source={require('../assets/images/video-play 1.png')} />
-                        </TouchableOpacity>
+
                         <Image style={styles.Icons} source={require('../assets/images/call 1.png')} />
                         <Image style={styles.Icons} source={require('../assets/images/comment 1.png')} />
                         <Image style={styles.Icons} source={require('../assets/images/location (2) 2.png')} />
@@ -220,7 +267,6 @@ const OngoingTicketCard: React.FC<TicketCardProps> = ({
                     <Text style={styles.btnText1}>See More</Text>
                 </TouchableOpacity>
                 <View style={styles.actionIcons}>
-                    <TouchableOpacity onPress={handleScan}><Image style={styles.Icons} source={require('../assets/images/video-play 1.png')} /></TouchableOpacity>
                     <Image style={styles.Icons} source={require('../assets/images/call 1.png')} />
                     <Image style={styles.Icons} source={require('../assets/images/comment 1.png')} />
                     <Image style={styles.Icons} source={require('../assets/images/location (2) 2.png')} />
@@ -256,7 +302,7 @@ const styles = StyleSheet.create({
         height: 31,
         borderWidth: 2,
         padding: 4,
-        marginTop: 20,
+        marginTop: 15,
         marginLeft: 'auto',
         marginRight: 'auto',
     },
@@ -420,7 +466,6 @@ const styles = StyleSheet.create({
         height: 61,
         width: 305,
         alignSelf: 'center',
-
     },
     actionIcon: {
         width: 32,

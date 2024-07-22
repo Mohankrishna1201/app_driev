@@ -22,10 +22,14 @@
       "permissions": [
         "CAMERA"
       ],
+      "dangerous": {
+        "fonts": []
+      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.mohankrishna1201.drievf"
     },
     "web": {
       "bundler": "metro",
@@ -37,18 +41,24 @@
       [
         "expo-font",
         {
-          "fonts": {
-            "Roboto": {
-              "400": "./assets/fonts/Roboto-Regular.ttf",
-              "500": "./assets/fonts/Roboto-Medium.ttf",
-              "700": "./assets/fonts/Roboto-Bold.ttf"
-            }
+          "Roboto": {
+            "400": "./assets/fonts/Roboto-Regular.ttf",
+            "500": "./assets/fonts/Roboto-Medium.ttf",
+            "700": "./assets/fonts/Roboto-Bold.ttf"
           }
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "a4814013-9cb1-4263-a4b1-50e95e76b202"
+      }
     }
   }
 }

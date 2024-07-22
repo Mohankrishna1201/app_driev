@@ -6,7 +6,7 @@ import { getRequestPlusHeaders } from '../../api/final_api';
 import { FETCH_UPCOMING_TICKET_CARDS } from '../../api/Request';
 import { router } from 'expo-router';
 import TicketCard from 'components/Bike';
-import { TicketCardProps } from 'constants/types';
+import { OngoingTicketCardProps, TicketCardProps } from 'constants/types';
 import OngoingTicketCard from 'components/OngoingTicket';
 
 interface Ticket {
@@ -31,6 +31,7 @@ interface Ticket {
     selectedTicketId: string | null;
     handleCardClick: (ticketId: string) => void;
     handleBack: () => void;
+    handleConfirmation: () => void
 }
 
 interface TicketResponse {
@@ -78,6 +79,7 @@ const ScreenTwo = () => {
                     NosHelmet: 0,
                     HelmetId1: 0,
                     HelmetId2: 0,
+                    handleConfirmation: handleConfirmation
 
                 }));
                 setBikeTkt(mappedTickets);
@@ -107,6 +109,9 @@ const ScreenTwo = () => {
         setSelectedTicketId(null);
     };
 
+    const handleConfirmation = () => {
+        router.navigate('confirmation.tsx')
+    }
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.nav}>
@@ -122,6 +127,8 @@ const ScreenTwo = () => {
                         selectedTicketId={selectedTicketId}
                         handleCardClick={handleCardClick}
                         handleBack={handleBack}
+                        handleConfirmation={handleConfirmation}
+
                     />
                 </View>
             </ScrollView>
@@ -187,10 +194,11 @@ const styles = StyleSheet.create({
 });
 
 type BikeTicketsProps = {
-    tickets: TicketCardProps[];
+    tickets: OngoingTicketCardProps[];
     selectedTicketId: string | null;
     handleCardClick: (ticketId: string) => void;
     handleBack: () => void;
+    handleConfirmation: () => void
 };
 
 const BikeTickets: React.FC<BikeTicketsProps> = ({ tickets, selectedTicketId, handleCardClick, handleBack }) => {
@@ -202,6 +210,7 @@ const BikeTickets: React.FC<BikeTicketsProps> = ({ tickets, selectedTicketId, ha
                 selectedTicketId={selectedTicketId}
                 handleCardClick={handleCardClick}
                 handleBack={handleBack}
+                handleConfirmation={handleConfirmation}
             />
 
         </View>
