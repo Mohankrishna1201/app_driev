@@ -302,7 +302,10 @@ const OngoingTicketCard: React.FC<OngoingTicketCardProps> = ({
             </View>
           </View>
         </View>
-        <TouchableOpacity onPress={handleCardClick} style={styles.button1}>
+        <TouchableOpacity
+          onPress={() => handleCardClick(ticketId)}
+          style={styles.button1}
+        >
           <Text style={styles.btnText1}>See More</Text>
         </TouchableOpacity>
         <View style={styles.actionIcons}>

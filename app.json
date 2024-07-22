@@ -16,7 +16,8 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSCameraUsageDescription": "We need access to your camera to scan QR codes"
-      }
+      },
+      "bundleIdentifier": "com.mohankrishna1201.drievf"
     },
     "android": {
       "permissions": [
