@@ -36,13 +36,14 @@ npm run reset-project
 This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
 ## GENERATING APK
-# Clone the Repositry
+### Clone the Repositry
 Run the following Commands
-'''bash
+```bash
 npm install
 cd android
 .gradlew assembleRelease
-'''
+```
+
 
 
 
