@@ -7,6 +7,7 @@ import {
   ScrollView,
   Button,
   Platform,
+  Alert,
 } from "react-native";
 import {
   GestureHandlerRootView,
@@ -19,6 +20,9 @@ import DetailedBikeTickets from "./CompletedBike";
 import * as ImagePicker from "expo-image-picker";
 
 import { router } from "expo-router";
+import { postRequest, postRequestplusFormDat } from "api/final_api";
+import { UPLOAD_DOC } from "api/Request";
+import { useGlobalContext } from "api/GlobalContext";
 const formatDateTime = (dateTime: string) => {
   const date = new Date(dateTime);
   const formattedDate = date.toLocaleDateString();
@@ -48,7 +52,8 @@ const OngoingTicketCard: React.FC<OngoingTicketCardProps> = ({
   selectedTicketId,
   handleCardClick,
   handleBack,
-  handleConfirmation,
+  handleConf
+
 }) => {
   const isSelected = selectedTicketId === ticketId;
   const [clicked, setClicked] = useState<boolean>(false);
@@ -79,6 +84,7 @@ const OngoingTicketCard: React.FC<OngoingTicketCardProps> = ({
   const handleScratchesButtonClicked = () => {
     setShowScratchesPictures(true);
   };
+  const { employeeData } = useGlobalContext();
 
   if (isSelected) {
     return (
@@ -137,13 +143,13 @@ const OngoingTicketCard: React.FC<OngoingTicketCardProps> = ({
               </View>
               <Text style={styles.picHeading}>Bike Pictures</Text>
               <View style={styles.row1}>
-                <ImagePickerExample direction="TOP" />
-                <ImagePickerExample direction="LEFT" />
-                <ImagePickerExample direction="RIGHT" />
+                <ImagePickerExample direction="TOP" ticket={selectedTicketId} />
+                <ImagePickerExample direction="LEFT" ticket={selectedTicketId} />
+                <ImagePickerExample direction="RIGHT" ticket={selectedTicketId} />
               </View>
               <View style={styles.row1}>
-                <ImagePickerExample direction="FRONT" />
-                <ImagePickerExample direction="BACK" />
+                <ImagePickerExample direction="FRONT" ticket={selectedTicketId} />
+                <ImagePickerExample direction="BACK" ticket={selectedTicketId} />
               </View>
               <TouchableOpacity
                 onPress={handleBatteryButtonClicked}
@@ -156,8 +162,8 @@ const OngoingTicketCard: React.FC<OngoingTicketCardProps> = ({
                 <>
                   <Text style={styles.picHeading}>Battery Pictures</Text>
                   <View style={styles.row1}>
-                    <ImagePickerExample direction="Battery1" />
-                    <ImagePickerExample direction="Battery2" />
+                    <ImagePickerExample direction="Battery1" ticket={selectedTicketId} />
+                    <ImagePickerExample direction="Battery2" ticket={selectedTicketId} />
                   </View>
 
                   <TouchableOpacity
@@ -174,8 +180,8 @@ const OngoingTicketCard: React.FC<OngoingTicketCardProps> = ({
                 <>
                   <Text style={styles.picHeading}>Helmet Pictures</Text>
                   <View style={styles.row1}>
-                    <ImagePickerExample direction="Helmet1" />
-                    <ImagePickerExample direction="Helmet2" />
+                    <ImagePickerExample direction="Helmet1" ticket={selectedTicketId} />
+                    <ImagePickerExample direction="Helmet2" ticket={selectedTicketId} />
                   </View>
                   <TouchableOpacity
                     onPress={handleConnectorButtonClicked}
@@ -191,8 +197,8 @@ const OngoingTicketCard: React.FC<OngoingTicketCardProps> = ({
                 <>
                   <Text style={styles.picHeading}>Connector Pictures</Text>
                   <View style={styles.row1}>
-                    <ImagePickerExample direction="Connector1" />
-                    <ImagePickerExample direction="Connector2" />
+                    <ImagePickerExample direction="Connector1" ticket={selectedTicketId} />
+                    <ImagePickerExample direction="Connector2" ticket={selectedTicketId} />
                   </View>
                   <TouchableOpacity
                     onPress={handleChargerButtonClicked}
@@ -208,7 +214,7 @@ const OngoingTicketCard: React.FC<OngoingTicketCardProps> = ({
                 <>
                   <Text style={styles.picHeading}>Charger Pictures</Text>
                   <View style={styles.row1}>
-                    <ImagePickerExample direction="Charger1" />
+                    <ImagePickerExample direction="Charger1" ticket={selectedTicketId} />
                   </View>
                   <TouchableOpacity
                     onPress={handleScratchesButtonClicked}
@@ -216,7 +222,7 @@ const OngoingTicketCard: React.FC<OngoingTicketCardProps> = ({
                   >
                     <Text style={styles.btnText}>Now Click Scratches</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.button1}>
+                  <TouchableOpacity onPress={() => handleConf()} style={styles.button1}>
                     <Text style={styles.btnText1}>Now Proceed</Text>
                   </TouchableOpacity>
                 </>
@@ -225,14 +231,14 @@ const OngoingTicketCard: React.FC<OngoingTicketCardProps> = ({
                 <>
                   <Text style={styles.picHeading}>Scratches Pictures</Text>
                   <View style={styles.row1}>
-                    <ImagePickerExample direction="Scratch 1" />
-                    <ImagePickerExample direction="Scratch 2" />
-                    <ImagePickerExample direction="Scratch 3" />
+                    <ImagePickerExample direction="Scratch 1" ticket={selectedTicketId} />
+                    <ImagePickerExample direction="Scratch 2" ticket={selectedTicketId} />
+                    <ImagePickerExample direction="Scratch 3" ticket={selectedTicketId} />
                   </View>
                   <View style={styles.row1}>
-                    <ImagePickerExample direction="Scratch 4" />
-                    <ImagePickerExample direction="Scratch 5" />
-                    <ImagePickerExample direction="Scratch 6" />
+                    <ImagePickerExample direction="Scratch 4" ticket={selectedTicketId} />
+                    <ImagePickerExample direction="Scratch 5" ticket={selectedTicketId} />
+                    <ImagePickerExample direction="Scratch 6" ticket={selectedTicketId} />
                   </View>
                 </>
               )}
@@ -257,74 +263,7 @@ const OngoingTicketCard: React.FC<OngoingTicketCardProps> = ({
     );
   }
 
-  return (
-    <GestureHandlerRootView>
-      <View style={styles.ticketCard}>
-        <View style={styles.ticketContent}>
-          <View style={styles.topCard}>
-            <Text style={styles.ticketId}> Ticket ID #{ticketId}</Text>
-            <View style={styles.green}>
-              <Image
-                style={styles.vehicleIcon}
-                source={require("../assets/images/Ather.png")}
-              />
-              <Text style={styles.vehicleTypeText}>Bike</Text>
-            </View>
-          </View>
-          <View style={styles.row}>
-            <View>
-              <Text style={styles.label}>Type of Job</Text>
-              <Text style={styles.value}>{jobType}</Text>
-            </View>
-            <View>
-              <Text style={styles.label}>Type of Delivery</Text>
-              <Text style={styles.value}>{deliveryType}</Text>
-            </View>
-          </View>
-          <View style={styles.row}>
-            <View>
-              <Text style={styles.label}>Customer Name</Text>
-              <Text style={styles.value}>{customerName}</Text>
-            </View>
-            <View style={styles.damage1}>
-              <Text style={styles.label}>Vehicle No</Text>
-              <Text style={styles.value}>{vehicleNo}</Text>
-            </View>
-          </View>
-          <View style={styles.row}>
-            <View>
-              <Text style={styles.label}>Pickup Date & Time</Text>
-              <Text style={styles.value}>{formatDateTime(dateTime)}</Text>
-            </View>
-            <View style={styles.damage2}>
-              <Text style={styles.label}>Vehicle Station</Text>
-              <Text style={styles.value}>{vehicleStation}</Text>
-            </View>
-          </View>
-        </View>
-        <TouchableOpacity
-          onPress={() => handleCardClick(ticketId)}
-          style={styles.button1}
-        >
-          <Text style={styles.btnText1}>See More</Text>
-        </TouchableOpacity>
-        <View style={styles.actionIcons}>
-          <Image
-            style={styles.Icons}
-            source={require("../assets/images/call 1.png")}
-          />
-          <Image
-            style={styles.Icons}
-            source={require("../assets/images/comment 1.png")}
-          />
-          <Image
-            style={styles.Icons}
-            source={require("../assets/images/location (2) 2.png")}
-          />
-        </View>
-      </View>
-    </GestureHandlerRootView>
-  );
+
 };
 
 const styles = StyleSheet.create({
@@ -407,6 +346,7 @@ const styles = StyleSheet.create({
     fontFamily: "Roboto-Regular",
     paddingLeft: 10,
     paddingRight: 10,
+
   },
   topCard: {
     flexDirection: "row",
@@ -420,7 +360,8 @@ const styles = StyleSheet.create({
   },
   container1: {
     backgroundColor: "#FFF",
-    alignSelf: "center",
+    justifyContent: 'center',
+    borderRadius: 10,
   },
   headerIcon: {
     width: 22,
@@ -544,46 +485,81 @@ export default OngoingTicketCard;
 
 interface ImagePickerExampleProps {
   direction: string;
+  ticket: any
 }
 
-const ImagePickerExample: React.FC<ImagePickerExampleProps> = ({
-  direction,
-}) => {
+
+const ImagePickerExample: React.FC<ImagePickerExampleProps> = ({ direction, ticket }) => {
   const [image, setImage] = useState<string | null>(null);
+  const { employeeData } = useGlobalContext();
 
   useEffect(() => {
     const requestPermissions = async () => {
       if (Platform.OS !== "web") {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== "granted") {
-          alert("Sorry, we need camera permissions to make this work!");
+          Alert.alert("Sorry, we need camera permissions to make this work!");
         }
       }
     };
     requestPermissions();
   }, []);
 
+  // const uploadFile = async (formData: FormData) => {
+  //   try {
+  //     const response: any = await postRequestplusFormData(`crm/uploadFile/${ticket}`, formData);
+  //     console.log('Upload response:', response);
+  //   } catch (error: any) {
+  //     console.error('Error uploading file:', error.message);
+  //   }
+  // };
+
   const pickImage = async () => {
     let result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: false,
-      aspect: [4, 3],
       quality: 1,
     });
 
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      try {
+        const uri = result.assets[0].uri;
+        const filename = uri.split('/').pop();
+        const match = /\.(\w+)$/.exec(filename ?? '');
+        const type = match ? `image/${match[1]}` : `image`;
+
+        let formData: any = new FormData();
+        formData.append("image", { uri, name: filename, type });
+
+        const bodyDetails = {
+          description: direction,
+          type: 'pdi',
+          vehicleId: '400',
+          createdBy: employeeData.name,
+        };
+        formData.append('user', JSON.stringify(bodyDetails));
+
+        setImage(uri);
+
+        console.log('FormData before upload:', formData);
+        // uploadFile(formData);
+        await postRequestplusFormDat(formData, ticket);
+
+      } catch (error: any) {
+        console.error('Error processing image:', error.message);
+      }
     }
   };
 
   return (
     <View>
-      {!image && (
+      {!image ? (
         <TouchableOpacity onPress={pickImage} style={styles.imagePick}>
           <Text style={styles.imageText}>{direction}</Text>
         </TouchableOpacity>
+      ) : (
+        <Image source={{ uri: image }} style={styles.capturedImage} />
       )}
-      {image && <Image source={{ uri: image }} style={styles.capturedImage} />}
     </View>
   );
 };

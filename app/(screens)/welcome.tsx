@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     StyleSheet,
     Text,
@@ -7,20 +7,78 @@ import {
     Image,
     KeyboardAvoidingView,
     Platform,
+    ActivityIndicator,
 } from 'react-native';
 import { GestureHandlerRootView, TouchableOpacity } from 'react-native-gesture-handler';
-import { getRequest, postRequest } from '../../api/final_api';
+import { getRequest, postRequest, getRequestPlusHeaders, MapEmployee } from '../../api/final_api';
 import { SEND_OTP, VERIFY_OTP } from '../../api/Request';
-import { router } from 'expo-router';
+import { router, useGlobalSearchParams } from 'expo-router';
+import { TICKET_SUMMARY, LAST_ACTIVE_TKT, FIND_EMPLOYEE } from '../../api/Request';
+import { useGlobalContext } from 'api/GlobalContext';
 
 const Welcome: React.FC = () => {
-    const [name, setName] = useState<string>('Vijay');
+    const [name, setName] = useState<string>('');
     const [scheduledTkt, setScheduledTkt] = useState<number>(0);
     const [completedTkt, setCompletedTkt] = useState<number>(0);
-    const [active, setActive] = useState<string>('#####')
+    const [active, setActive] = useState<string>('#####');
+    const [loading, setLoading] = useState<boolean>(true);
+    const [stationId, setStationId] = useState<string>('');
+    const [role, setRole] = useState<any>();
+    const { fetchEmployeeData } = useGlobalContext();
+    // const stationId =
+    //     "S-15502,S-15535,S-17484,S-17920,S-19920,S-24396,S-26141,S-29506";
 
+    //params
+    const { contact } = useGlobalSearchParams();
+    console.log(contact);
+    const { employeeData } = useGlobalContext()
+    console.log("check", employeeData)
+    const getSummary = async () => {
+        // if (contact) {
+        //     FindingEmployee();
+
+
+        // }
+
+        const response: any = await getRequestPlusHeaders(`${TICKET_SUMMARY}`, stationId);
+        setCompletedTkt(response.completedTickets);
+        setScheduledTkt(response.pendingTickets);
+        setLoading(false);
+        console.log(response);
+    }
+
+    const latestTicket = async () => {
+        const response: any = await getRequestPlusHeaders(`${LAST_ACTIVE_TKT}`, stationId);
+        console.log(response[0].ticketId);
+        setActive(response[0].ticketId);
+
+    }
+    // const FindingEmployee = async () => {
+    //     const response: any = await MapEmployee(FIND_EMPLOYEE, contact);
+    //     setStationId(response.stationId);
+    //     console.log(response);
+    //     setName(response.name)
+    //     setRole(response.role);
+
+
+    // }
+    useEffect(() => {
+        // if (contact) {
+        //     fetchEmployeeData(contact);
+        // }
+        getSummary();
+        latestTicket();
+        setStationId(employeeData.stationId);
+    })
     const handleGoToTkt = () => {
-        router.navigate('/screen-2')
+        router.replace({
+            pathname: 'screen-2',
+            params: { stationId },
+        });
+    }
+
+    if (loading) {
+        return (<View style={styles.load}><ActivityIndicator /></View>)
     }
     return (
         <GestureHandlerRootView>
@@ -30,15 +88,19 @@ const Welcome: React.FC = () => {
             >
                 <View style={styles.bg}>
                     <Image source={require('../../assets/images/icon.png')} style={styles.icon} />
-                    <Text style={styles.sideHead}>{`Hi ${name}`}</Text>
+                    <Text style={styles.sideHead}>{`Hi ${employeeData.name}`}</Text>
                     <Text style={styles.welcomeMsg}>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.
+                        You are an {employeeData.role}
+                    </Text>
+                    <Text style={styles.welcomeMsg}>
+                        smod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.
                     </Text>
                     <View style={styles.boxArea}>
                         <View style={styles.box}>
                             <View style={styles.row}>
                                 <Text style={styles.schedule}>
                                     Scheduled Tickets
+
                                 </Text>
                                 <Text style={styles.schedule}>
                                     {`${scheduledTkt}`}
@@ -65,7 +127,7 @@ const Welcome: React.FC = () => {
                                         Ticket Id : {`${active}`}
                                     </Text>
                                 </View>
-                                <TouchableOpacity onPress={handleGoToTkt} style={styles.gotoTkt} >
+                                <TouchableOpacity onPress={handleGoToTkt}  >
                                     <Text style={styles.button}>
                                         Go to Ticket
                                     </Text>
@@ -84,8 +146,8 @@ const Welcome: React.FC = () => {
 export default Welcome;
 
 const styles = StyleSheet.create({
-    gotoTkt: {
-        marginLeft: 30
+    load: {
+        margin: 'auto',
     },
     schedule: {
         fontSize: 16,
@@ -96,7 +158,7 @@ const styles = StyleSheet.create({
 
     },
     tkt: {
-        fontSize: 15,
+        fontSize: 12,
 
     },
     name: {
@@ -161,7 +223,7 @@ const styles = StyleSheet.create({
     row1: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 20,
+        justifyContent: 'space-around'
 
     },
     box: {

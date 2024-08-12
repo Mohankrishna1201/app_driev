@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, Alert, Dimensions, Animated, Easing, Image, KeyboardAvoidingView } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
-import { useRouter } from 'expo-router';
+import { useGlobalSearchParams, useRouter } from 'expo-router';
 import { lightGreen } from '../../constants/Colors';
 import { GestureHandlerRootView, TextInput, TouchableOpacity } from 'react-native-gesture-handler';
-
+import { postRequest, putRequest } from 'api/final_api';
+import { UPDATE_REQUEST } from 'api/Request';
 const { width, height } = Dimensions.get('window');
 const qrSize = 150; // Size of the square region for QR scanning
 
@@ -15,6 +16,9 @@ const QRScanner: React.FC = () => {
     const scanLineAnim = useRef(new Animated.Value(0)).current;
     const [bikeNum, setBikeNum] = useState('');
     const router = useRouter();
+    const { selectedTicketId, stationId } = useGlobalSearchParams();
+    console.log(selectedTicketId);
+    console.log(stationId);
 
     useEffect(() => {
         (async () => {
@@ -51,10 +55,35 @@ const QRScanner: React.FC = () => {
         router.navigate('/ongoing-tkt')
     };
 
-    const handleInput = (text: string) => {
+    const UpdateReq = async () => {
+        try {
+            const data: any = {
+                "assignedTo": "JayaK",
+                "state": "5",
+                "comments": [
+                    {
+                        "comment": "Ticket Accepted",
+                        "modifiedBy": "Mohan from LAPTOP"
+                    }
+                ]
+            }
+            const response = await putRequest(`${UPDATE_REQUEST}/${selectedTicketId}`, data);
+            if (response) {
+                console.log("success final");
+                console.log(response);
+
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+    const handleInput = async (text: string) => {
         setBikeNum(text);
         setInputFocused(false); // Reset input focus state
-        router.navigate('/ongoing-tkt'); // Navigate when done
+        router.replace({ pathname: '/ongoing-tkt', params: { selectedTicketId, stationId } }) // Navigate when done
+
+        // await UpdateReq();
+
     };
 
     const fetchAPI = async (data: string) => {

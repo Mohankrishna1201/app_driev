@@ -108,13 +108,7 @@ const ScreenTwo = () => {
   const handleBack = () => {
     setSelectedTicketId(null);
   };
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const currentScrollY = event.nativeEvent.contentOffset.y;
-    if (currentScrollY === 0) {
-      // User has scrolled to the top
-      router.replace("/screen-3");
-    }
-  };
+
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -154,18 +148,13 @@ const ScreenTwo = () => {
         <>
           <View style={styles.nav}>
             <Text style={styles.head}>Completed Tickets</Text>
-            <TouchableOpacity>
-              <Image
-                source={require("../../assets/images/filter 1.png")}
-                style={styles.image}
-              />
-            </TouchableOpacity>
+
           </View>
         </>
       )}
 
       <ScrollView
-        onScroll={handleScroll}
+
         scrollEventThrottle={16}
         refreshControl={
           <RefreshControl

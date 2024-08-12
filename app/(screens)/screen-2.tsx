@@ -10,17 +10,24 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   RefreshControl,
+  Modal,
+  Button,
+  FlatList,
+  TouchableWithoutFeedback,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { getRequestPlusHeaders } from "../../api/final_api";
-import { FETCH_UPCOMING_TICKET_CARDS } from "../../api/Request";
-import { router } from "expo-router";
+import { getRequest, getRequestPlusHeaders } from "../../api/final_api";
+import { FETCH_UPCOMING_TICKET_CARDS, GET_SERVICE_TYPES, LAST_ACTIVE_TKT } from "../../api/Request";
+import { router, useGlobalSearchParams, useLocalSearchParams } from "expo-router";
 import TicketCard from "components/Bike";
 import { TicketCardProps } from "constants/types";
 import LoadingSpinner from "components/loader";
 import { isLoading } from "expo-font";
+import { Picker } from '@react-native-picker/picker';
+
+
 
 interface Ticket {
   ticketId: string;
@@ -57,25 +64,63 @@ interface TicketResponse {
   area: string;
   actionIcons: number;
 }
-
+type ServiceType = {
+  name: string;
+  description: string;
+};
+type ServiceTypeResponse = {
+  name: string;
+  description: string;
+};
 const ScreenTwo: React.FC = () => {
   const [batteryTkt, setBatteryTkt] = useState<Ticket[]>([]);
   const [bikeTkt, setBikeTkt] = useState<Ticket[]>([]);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [chargerTkt, setChargerTkt] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [items, setItems] = useState<ServiceType[]>([]);
+  const [item, setItem] = useState<String>('');
+  const [isPickerVisible, setIsPickerVisible] = useState<boolean>(false);
 
-  const stationId =
-    "S-15502,S-15535,S-17484,S-17920,S-19920,S-24396,S-26141,S-29506";
 
+  const togglePickerVisibility = () => {
+    setIsPickerVisible(!isPickerVisible);
+  };
+  // const stationId =
+
+  //   "S-15502,S-15535,S-17484,S-17920,S-19920,S-24396,S-26141,S-29506";
+  const { stationId } = useGlobalSearchParams();
+  console.log(stationId);
+  const getServiceTypes = async () => {
+    try {
+      const response = await getRequest(`${GET_SERVICE_TYPES}`);
+      if (response) {
+        const mappedServices: ServiceType[] = response.map(
+          (service: ServiceTypeResponse) => ({
+            name: service.name,
+            description: service.description
+          })
+        )
+        setItems(mappedServices)
+        console.log(`service, ${response}`)
+      }
+
+    } catch (error) {
+
+    }
+  }
   const getUpcomingTickets = async () => {
     try {
       const response = await getRequestPlusHeaders(
-        `${FETCH_UPCOMING_TICKET_CARDS}`,
+        `${LAST_ACTIVE_TKT}`,
         stationId
       );
-      const handleScanning = () => {
-        router.navigate("/qr-scanner");
+      const handleScanning = (ticketId: string) => {
+        router.replace({
+          pathname: 'qr-scanner',
+          params: { selectedTicketId: ticketId, stationId: stationId },
+        });
+
       };
       if (response) {
         const mappedTickets: Ticket[] = response.map(
@@ -113,6 +158,7 @@ const ScreenTwo: React.FC = () => {
 
   useEffect(() => {
     getUpcomingTickets();
+    getServiceTypes();
   }, []);
 
   const handleUpcoming = () => {
@@ -125,19 +171,20 @@ const ScreenTwo: React.FC = () => {
 
   const handleCardClick = (ticketId: string) => {
     setSelectedTicketId(ticketId);
-  };
 
+
+  };
+  console.log(selectedTicketId);
   const handleBack = () => {
     setSelectedTicketId(null);
   };
-
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const currentScrollY = event.nativeEvent.contentOffset.y;
-    if (currentScrollY === 0) {
-      // User has scrolled to the top
-      router.replace("/screen-2");
+  const handleOutsideClick = () => {
+    if (isPickerVisible) {
+      setIsPickerVisible(false);
     }
   };
+
+
 
   if (loading) {
     return (
@@ -153,13 +200,42 @@ const ScreenTwo: React.FC = () => {
         <>
           <View style={styles.nav}>
             <Text style={styles.head}>Upcoming Tickets</Text>
-            <TouchableOpacity>
+
+            <TouchableOpacity onPress={togglePickerVisibility}>
               <Image
                 source={require("../../assets/images/filter 1.png")}
                 style={styles.image}
               />
             </TouchableOpacity>
+
+            {isPickerVisible && (
+              <>
+                <TouchableWithoutFeedback onPress={handleOutsideClick}>
+                  <View style={styles.overlay} />
+                </TouchableWithoutFeedback>
+                <View style={styles.dropdown}>
+
+                  <FlatList
+                    data={items}
+                    keyExtractor={(item) => item.description}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          setItem(item.name);
+                          togglePickerVisibility();
+                        }}
+                      >
+                        <Text>{item.name}</Text>
+                      </TouchableOpacity>
+                    )}
+                  />
+                </View>
+              </>
+            )}
           </View>
+
+
           <View style={styles.tabContainer}>
             <View style={styles.activeTab}>
               <TouchableOpacity onPress={handleUpcoming}>
@@ -178,17 +254,12 @@ const ScreenTwo: React.FC = () => {
         <>
           <View style={styles.nav}>
             <Text style={styles.head}>Upcoming Tickets</Text>
-            <TouchableOpacity>
-              <Image
-                source={require("../../assets/images/filter 1.png")}
-                style={styles.image}
-              />
-            </TouchableOpacity>
+
           </View>
         </>
       )}
       <ScrollView
-        // onScroll={handleScroll}
+
         scrollEventThrottle={16}
         refreshControl={
           <RefreshControl
@@ -204,6 +275,7 @@ const ScreenTwo: React.FC = () => {
           selectedTicketId={selectedTicketId}
           handleCardClick={handleCardClick}
           handleBack={handleBack}
+
         />
       </ScrollView>
     </SafeAreaView>
@@ -213,6 +285,15 @@ const ScreenTwo: React.FC = () => {
 export default ScreenTwo;
 
 const styles = StyleSheet.create({
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'transparent',
+    zIndex: 900, // Ensure it covers other elements
+  },
   loader: {
     margin: "auto",
     height: 40,
@@ -226,6 +307,10 @@ const styles = StyleSheet.create({
     height: 41,
     margin: "auto",
     marginTop: 10,
+  },
+  container1: {
+    flex: 1,
+    padding: 16,
   },
   activeTab: {
     backgroundColor: "#3DB54A",
@@ -267,6 +352,20 @@ const styles = StyleSheet.create({
   head: {
     fontFamily: "Roboto-Bold",
     fontSize: 18,
+  },
+  dropdown: {
+    position: 'absolute',
+    top: 50, // Adjust based on the image size and positioning
+    right: 50,
+    width: 200,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    zIndex: 1000,
+  },
+  dropdownItem: {
+    padding: 15,
   },
 });
 

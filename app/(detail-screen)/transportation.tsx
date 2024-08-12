@@ -20,7 +20,6 @@ import { getRequest, getRequestPlusHeaders } from "../../api/final_api";
 import {
     FETCH_COMPLETED_TICKET_CARDS,
     FETCH_UPCOMING_TICKET_CARDS,
-    LAST_ACTIVE_TKT,
 } from "../../api/Request";
 import { router, useGlobalSearchParams } from "expo-router";
 import TicketCard from "components/Bike";
@@ -55,81 +54,24 @@ interface TicketResponse {
 }
 
 
-const ScreenTwo = () => {
+const Transportation = () => {
     const [batteryTkt, setBatteryTkt] = useState<Ticket[]>([]);
     const [bikeTkt, setBikeTkt] = useState<TicketCardProps[]>([]);
     const [chargerTkt, setChargerTkt] = useState<Ticket[]>([]);
-    // const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
-    const stationId =
-        "S-15502,S-15535,S-17484,S-17920,S-19920,S-24396,S-26141,S-29506";
+
     const { selectedTicketId } = useGlobalSearchParams();
-    const [loading, setLoading] = useState<boolean>(true);
-    const getCompletedTickets = async () => {
-        try {
-            const response = await getRequestPlusHeaders(
-                `${LAST_ACTIVE_TKT}`,
-                stationId
-            );
-            if (response) {
-                console.log("success");
-                console.log(response);
-                const mappedTickets: TicketCardProps[] = response.map(
-                    (ticket: TicketResponse) => ({
-                        ticketId: ticket.ticketId,
-                        jobType: ticket.serviceType,
-                        customerName: ticket.name,
-                        dateTime: ticket.createdDate,
-                        vehicleType: ticket.vehicleModel,
-                        deliveryType: ticket.serviceType,
-                        vehicleNo: ticket.vehicleNo,
-                        vehicleStation: ticket.area,
-                        actionIcons: 3,
-                    })
-                );
-                setBikeTkt(mappedTickets);
-                setLoading(false);
-            }
-        } catch (error) {
-            console.log(error);
-        }
-    };
+
+
     const { employeeData } = useGlobalContext();
-    const handleUpcoming = () => {
-        router.navigate("screen-2");
-    };
 
-    const handleCompleted = () => {
-        getCompletedTickets();
-    };
-
-    useEffect(() => {
-        handleCompleted();
-    }, []);
-
-    const handleCardClick = (ticketId: string) => {
-
-    };
-    const handleTransport = () => {
-        router.replace({
-            pathname: 'transportation',
-            params: { selectedTicketId: selectedTicketId },
-        });
-    }
 
     const handleBack = () => {
         router.replace({
-            pathname: 'qr-scanner',
-            params: { selectedTicketId: selectedTicketId, stationId: stationId },
+            pathname: 'ongoing-tkt',
+            params: { selectedTicketId: selectedTicketId },
         });
     };
 
-    if (loading) {
-        return (
-            <View style={styles.loader}>
-                <ActivityIndicator />
-            </View>
-        );
-    }
 
     return (
         <SafeAreaView style={styles.container}>
@@ -139,28 +81,17 @@ const ScreenTwo = () => {
                     <View style={styles.nav}>
                         <Text style={styles.head}>Ongoing Tickets</Text>
                         <Text>{employeeData.name}</Text>
+                        
                     </View>
                 </>
             )}
 
-            <ScrollView
 
-                scrollEventThrottle={16}
-
-            >
-                <BikeTickets
-                    tickets={bikeTkt}
-                    selectedTicketId={selectedTicketId}
-                    handleCardClick={handleCardClick}
-                    handleBack={handleBack}
-                    handleConfirmation={handleTransport}
-                />
-            </ScrollView>
         </SafeAreaView>
     );
 };
 
-export default ScreenTwo;
+export default Transportation;
 
 const styles = StyleSheet.create({
     loader: {
@@ -233,35 +164,3 @@ const styles = StyleSheet.create({
         fontSize: 18,
     },
 });
-
-type BikeTicketsProps = {
-    tickets: TicketCardProps[];
-    selectedTicketId: any;
-    handleCardClick: (ticketId: string) => void;
-    handleBack: () => void;
-    handleConfirmation: () => void;
-};
-
-
-
-const BikeTickets: React.FC<BikeTicketsProps> = ({
-    tickets,
-    selectedTicketId,
-    handleCardClick,
-    handleBack,
-    handleConfirmation,
-}) => {
-    return (
-        <View>
-
-            <OngoingTicketCard
-                {...tickets.find((ticket) => ticket.ticketId === selectedTicketId)!}
-                selectedTicketId={selectedTicketId}
-                handleCardClick={handleCardClick}
-                handleBack={handleBack}
-                handleConf={handleConfirmation}
-            />
-
-        </View>
-    );
-};

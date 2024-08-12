@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -12,22 +12,46 @@ import {
   GestureHandlerRootView,
   TouchableOpacity,
 } from "react-native-gesture-handler";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getRequest, postRequest } from "../../api/final_api";
 import { SEND_OTP, VERIFY_OTP } from "../../api/Request";
 import { router } from "expo-router";
+import { useGlobalContext } from "api/GlobalContext";
 
 const SignUp: React.FC = () => {
   const [contact, setContact] = useState<string>("");
   const [otp, setOtp] = useState<string[]>(["", "", "", ""]);
   const [contactCheck, setContactCheck] = useState<boolean>(false);
-  //testing
-  //   const [contactCheck, setContactCheck] = useState<boolean>(true);
+  const [wrongOtp, setWrongOtp] = useState<boolean>(false);
+  const [isLoginChecked, setIsLoginChecked] = useState<boolean>(false);
   const otpRefs = [
     useRef<TextInput>(null),
     useRef<TextInput>(null),
     useRef<TextInput>(null),
     useRef<TextInput>(null),
   ];
+  const { fetchEmployeeData } = useGlobalContext()
+  const { employeeData } = useGlobalContext();
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      const timestamp = await AsyncStorage.getItem("loginTimestamp");
+      const contact = await AsyncStorage.getItem("contact");
+      if (timestamp) {
+        const currentTime = new Date().getTime();
+        if (currentTime - parseInt(timestamp) <= 60 * 60 * 1000 && contact && employeeData) {
+          router.replace({
+            pathname: '/welcome',
+            params: { contact },
+          });
+        } else {
+          await AsyncStorage.removeItem("loginTimestamp");
+          await AsyncStorage.removeItem("contact");
+        }
+      }
+      setIsLoginChecked(true);
+    };
+    checkLoginStatus();
+  }, []);
 
   const getOTP = async () => {
     try {
@@ -36,6 +60,7 @@ const SignUp: React.FC = () => {
         console.log("success");
         console.log(response);
         setContactCheck(true);
+        setWrongOtp(false); // Reset wrongOtp to false when resending OTP
       }
     } catch (error) {
       console.log(error);
@@ -50,16 +75,22 @@ const SignUp: React.FC = () => {
         source: "website",
       };
       const response = await postRequest(VERIFY_OTP, data);
-      //testing
-      //   if (true) {
-      //     console.log("success");
-      //     console.log(response);
-      //     router.navigate("/welcome");
-      //   }
       if (response) {
         console.log("success");
         console.log(response);
-        router.navigate("/welcome");
+        if (response.type === 'success') {
+          const currentTime = new Date().getTime();
+          await AsyncStorage.setItem("loginTimestamp", currentTime.toString());
+          await AsyncStorage.setItem("contact", contact);
+          await fetchEmployeeData(contact)
+          router.replace({
+            pathname: '/welcome',
+            params: { contact },
+          });
+
+        } else if (response.type === 'error') {
+          setWrongOtp(true);
+        }
       }
     } catch (error) {
       console.log(error);
@@ -88,6 +119,38 @@ const SignUp: React.FC = () => {
       console.log(error);
     }
   };
+
+  if (!isLoginChecked) {
+    return null; // Render nothing until login status is checked
+  }
+
+  if (wrongOtp && contactCheck) {
+    return (
+      <GestureHandlerRootView>
+        <KeyboardAvoidingView
+          style={styles.container}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <View style={styles.bg}>
+            <Image
+              source={require("../../assets/images/icon.png")}
+              style={styles.icon}
+            />
+            <Text style={styles.sideHead}>Please check your OTP and try again</Text>
+            <View style={styles.inputArea}>
+              <TouchableOpacity onPress={getOTP} style={styles.button}>
+                <Text style={styles.btnText}>Resend OTP</Text>
+              </TouchableOpacity>
+              <Text style={styles.terms}>
+                By continuing, you have read and agreed to the{" "}
+                <Text style={styles.blue}>terms and conditions.</Text>
+              </Text>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </GestureHandlerRootView>
+    )
+  }
 
   if (contactCheck) {
     return (

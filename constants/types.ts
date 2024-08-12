@@ -45,7 +45,7 @@ export type OngoingTicketCardProps = {
     selectedTicketId: string | null;
     handleCardClick: (ticketId: string) => void;
     handleBack: () => void;
-    handleConfirmation: () => void;
+    handleConf: () => void;
 
 
 };

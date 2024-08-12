@@ -6,7 +6,7 @@ const DetailLayout = () => {
         <>
             <Stack>
                 <Stack.Screen name='ongoing-tkt' options={{ headerShown: false }} />
-                <Stack.Screen name='confirmation' options={{ headerShown: false }} />
+                <Stack.Screen name='transportation' options={{ headerShown: false }} />
             </Stack>
 
         </>

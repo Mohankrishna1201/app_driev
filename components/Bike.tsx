@@ -124,7 +124,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
                             </View>
                         </View>
                         <View style={styles.actionIcons}>
-                            <TouchableOpacity onPress={handleScan}><Image style={styles.Icons} source={require('../assets/images/video-play 1.png')} /></TouchableOpacity>
+                            <TouchableOpacity onPress={() => handleScan(ticketId)}><Image style={styles.Icons} source={require('../assets/images/video-play 1.png')} /></TouchableOpacity>
                             <Image style={styles.Icons} source={require('../assets/images/call 1.png')} />
                             <Image style={styles.Icons} source={require('../assets/images/comment 1.png')} />
                             <Image style={styles.Icons} source={require('../assets/images/location (2) 2.png')} />
@@ -184,7 +184,7 @@ const TicketCard: React.FC<TicketCardProps> = ({
                     </View>
                 </TouchableOpacity>
                 <View style={styles.actionIcons}>
-                    <TouchableOpacity onPress={handleScan}><Image style={styles.Icons} source={require('../assets/images/video-play 1.png')} /></TouchableOpacity>
+                    <TouchableOpacity ><Image style={styles.Icons} source={require('../assets/images/video-play 1.png')} /></TouchableOpacity>
                     <Image style={styles.Icons} source={require('../assets/images/call 1.png')} />
                     <Image style={styles.Icons} source={require('../assets/images/comment 1.png')} />
                     <Image style={styles.Icons} source={require('../assets/images/location (2) 2.png')} />
